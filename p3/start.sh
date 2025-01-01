@@ -1,11 +1,12 @@
 #!/bin/bash
 
 set -e # Exit on error
-
+sudo apt-get update
+sudo apt-get install curl
 # Step 1: Download and install k3d
 echo "Downloading k3d..."
-curl -Lo /usr/local/bin/k3d https://github.com/k3d-io/k3d/releases/download/v5.4.6/k3d-linux-amd64
-chmod +x /usr/local/bin/k3d
+sudo curl -Lo /usr/local/bin/k3d https://github.com/k3d-io/k3d/releases/download/v5.4.6/k3d-linux-amd64
+sudo chmod +x /usr/local/bin/k3d
 echo "k3d installed successfully."
 
 # Add Docker's official GPG key:
@@ -27,6 +28,6 @@ sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 #Download Kubectl
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+sudo curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl

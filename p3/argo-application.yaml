@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+
+kind: Application # the type of resource being defined
+
+metadata:
+  name: playground-argocd
+  namespace: argocd
+
+spec:
+  # The ArgoCD project under which this application is managed. "default" is used if no custom project is defined.
+  project: default
+
+  source:
+    repoURL: https://github.com/Zeekswastaken/IOT-Test # The Git repository containing the application's configuration.
+    targetRevision: HEAD
+    path: app
+
+  destination:
+    # Specifies the cluster where the application should be deployed. 
+    # "https://kubernetes.default.svc" refers to the current Kubernetes cluster where ArgoCD is running.
+    server: https://kubernetes.default.svc
+    namespace: dev # The namespace in the target cluster where the application will be deployed.
+
+  syncPolicy:
+    automated:
+      # If set to true, ArgoCD will attempt to fix automatically.
+      selfHeal: true 
+      # If set to true, ArgoCD will automatically delete resources in the cluster that are no longer defined in the source manifests.
+      prune: true
