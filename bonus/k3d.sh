@@ -39,7 +39,7 @@ kubectl wait --for=condition=Ready pods --all -n argocd
 echo "Username: admin"
 echo "Password: 123"
 echo "forwarding to argocd"
-kubectl port-forward svc/argocd-server -n argocd 9090:443a
+kubectl port-forward svc/argocd-server -n argocd 9090:443
 
 sleep 5
 export KUBECONFIG=$(k3d kubeconfig write bonus-cluster)
