@@ -7,7 +7,7 @@
 # sudo kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
 #!/bin/bash
 
-sudo k3d cluster create iot-cluster --api-port 6443 -p 8080:80@loadbalancer  -p 8888:8888@loadbalancer --agents 2 --wait
+sudo k3d cluster create zouazahr-cluster --api-port 6443 -p 8080:80@loadbalancer  -p 8888:8888@loadbalancer --agents 2 --wait
 
 sudo kubectl create namespace argocd
 sudo kubectl create namespace dev
