@@ -30,7 +30,7 @@ kubectl wait --namespace gitlab --for=condition=ready pod -l app=webservice --ti
 
 kubectl patch svc gitlab-webservice-default -n gitlab -p '{"spec": {"type": "LoadBalancer"}}'
 
-kubectl port-forward services/gitlab-webservice-default 80:8181 -n gitlab
+kubectl port-forward services/gitlab-webservice-default 8080:8181 -n gitlab
 
 info "Gitlab root password: "
 GITLAB_PASSWORD=$(kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -ojsonpath='{.data.password}' | base64 --decode)
