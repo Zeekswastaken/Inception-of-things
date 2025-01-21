@@ -21,7 +21,7 @@ echo "GitLab password: $gitlab_password"
 
 # Create Personal Access Token
 echo "Creating GitLab token..."
-TOKEN_RESPONSE=$(curl -s --request POST "http://gitlab.gitlab.local:80/api/v4/personal_access_tokens" \
+TOKEN_RESPONSE=$(curl -s --request POST "http://gitlab.localhost:8080/api/v4/personal_access_tokens" \
   --header "Content-Type: application/json" \
   --user "root:${gitlab_password}" \
   --data '{
@@ -36,7 +36,7 @@ mkdir -p /tmp/p3/{src/public,confs}
 cd /tmp/p3
 
 # Create demo application files
-cat > src/public/index.html <<EOF
+sudo cat > src/public/index.html <<EOF
 <!DOCTYPE html>
 <html>
 <head>
@@ -73,7 +73,7 @@ cat > src/public/index.html <<EOF
 EOF
 
 # Create Node.js files
-cat > src/index.js <<EOF
+sudo cat > src/index.js <<EOF
 const express = require('express');
 const app = express();
 const port = 3000;
@@ -84,7 +84,7 @@ app.listen(port, () => {
 });
 EOF
 
-cat > src/package.json <<EOF
+sudo cat > src/package.json <<EOF
 {
   "name": "aomman-bonus-website",
   "version": "1.0.0",
@@ -95,7 +95,7 @@ cat > src/package.json <<EOF
 EOF
 
 # Create Dockerfile
-cat > Dockerfile <<EOF
+sudo cat > Dockerfile <<EOF
 FROM node:16-alpine
 WORKDIR /app
 COPY src/package*.json ./
@@ -106,7 +106,7 @@ CMD ["node", "index.js"]
 EOF
 
 # Create Kubernetes manifests
-cat > confs/deployment.yaml <<EOF
+sudo cat > confs/deployment.yaml <<EOF
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -129,7 +129,7 @@ spec:
         - containerPort: 3000
 EOF
 
-cat > confs/service.yaml <<EOF
+sudo cat > confs/service.yaml <<EOF
 apiVersion: v1
 kind: Service
 metadata:
@@ -145,7 +145,7 @@ spec:
 EOF
 
 # Create GitLab CI
-cat > .gitlab-ci.yml <<EOF
+sudo cat > .gitlab-ci.yml <<EOF
 image: docker:20.10.16
 
 services:
@@ -177,7 +177,7 @@ EOF
 
 # Create GitLab project
 echo "Creating GitLab project..."
-curl -X POST "http://gitlab.gitlab.local:80/api/v4/projects" \
+curl -X POST "http://gitlab.localhost:8080/api/v4/projects" \
   --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
   --data "name=aomman-bonus-website"
 check_status "GitLab project created"
@@ -188,12 +188,12 @@ git config --global user.email "admin@example.com"
 git config --global user.name "Administrator"
 git add .
 git commit -m "Initial deployment"
-git remote add origin "http://root:${gitlab_password}@gitlab.gitlab.local:80/root/aomman-bonus-website.git"
+git remote add origin "http://root:${gitlab_password}@gitlab.localhost:8080/root/aomman-bonus-website.git"
 git push -u origin master
 check_status "Code pushed to GitLab"
 
 # Create ArgoCD configuration
-cat > confs/argocd.yaml <<EOF
+sudo cat > confs/argocd.yaml <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -202,7 +202,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'http://gitlab.gitlab.local:80/root/aomman-bonus-website.git'
+    repoURL: 'http://gitlab.localhost:8080/root/aomman-bonus-website.git'
     targetRevision: HEAD
     path: confs
   destination:
