@@ -72,7 +72,6 @@ sudo cat > src/public/index.html <<EOF
 </html>
 EOF
 
-# Create Node.js files
 sudo cat > src/index.js <<EOF
 const express = require('express');
 const app = express();
@@ -197,7 +196,7 @@ sudo cat > confs/argocd.yaml <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: adiouane-bonus-website
+  name: aomman-bonus-website
   namespace: argocd
 spec:
   project: default
