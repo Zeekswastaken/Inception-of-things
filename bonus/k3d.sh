@@ -39,9 +39,10 @@ kubectl wait --for=condition=Ready pods --all -n argocd
 echo "Username: admin"
 echo "Password: 123"
 echo "forwarding to argocd"
-kubectl port-forward svc/argocd-server -n argocd 9090:443 2>&1 >/dev/null &
+kubectl port-forward svc/argocd-server -n argocd 9090:443
 
 sleep 5
 export KUBECONFIG=$(k3d kubeconfig write bonus-cluster)
 
+# now i must install gitlab and manage it repositories
 # kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d

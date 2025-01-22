@@ -1,0 +1,35 @@
+global:
+  hosts:
+    domain: localhost
+    https: false
+    gitlab:
+      name: gitlab.localhost
+      https: false
+    externalUrl: http://gitlab.localhost:8080
+  ingress:
+    configureCertmanager: false
+    class: nginx
+    enabled: true
+    tls:
+      enabled: false
+
+certmanager:
+  install: false
+
+nginx-ingress:
+  enabled: false
+
+gitlab-runner:
+  install: false
+
+prometheus:
+  install: false
+
+
+gitlab:
+  webservice:
+    ingress:
+      enabled: true
+      hosts:
+        - gitlab.localhost
+
