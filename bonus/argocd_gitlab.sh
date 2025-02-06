@@ -201,7 +201,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'http://gitlab.localhost:8080/root/aomman-bonus-website.git'
+    repoURL: 'http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/root/aomman-bonus-website.git'
     targetRevision: HEAD
     path: confs
   destination:
