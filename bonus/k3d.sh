@@ -8,7 +8,7 @@ k3d cluster create bonus-cluster --api-port 8765 -p 8081:80@loadbalancer  -p 888
 export KUBECONFIG=$(k3d kubeconfig write bonus-cluster)
 sleep 10
 
-kubectl config current-context
+# kubectl config current-context
 
 kubectl create namespace argocd
 
