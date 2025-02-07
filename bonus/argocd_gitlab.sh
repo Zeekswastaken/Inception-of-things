@@ -20,16 +20,16 @@ gitlab_password=$(kubectl get secret gitlab-gitlab-initial-root-password -n gitl
 echo "GitLab password: $gitlab_password"
 
 # # Create Personal Access Token
-# echo "Creating GitLab token..."
-# TOKEN_RESPONSE=$(curl -s --request POST "http://gitlab.localhost:8080/api/v4/personal_access_tokens" \
-#   --header "Content-Type: application/json" \
-#   --user "root:${gitlab_password}" \
-#   --data '{
-#     "name": "gitlab-token",
-#     "scopes": ["api", "read_user", "read_repository", "write_repository"]
-#   }')
+echo "Creating GitLab token..."
+TOKEN_RESPONSE=$(curl -s --request POST "http://gitlab.localhost:8080/api/v4/personal_access_tokens" \
+  --header "Content-Type: application/json" \
+  --user "root:${gitlab_password}" \
+  --data '{
+    "name": "gitlab-token",
+    "scopes": ["api", "read_user", "read_repository", "write_repository"]
+  }')
 
-# export GITLAB_TOKEN=$(echo $TOKEN_RESPONSE | jq -r '.token')
+export GITLAB_TOKEN=$(echo $TOKEN_RESPONSE | jq -r '.token')
 
 # Create project structure
 # mkdir -p /tmp/p3/{src/public,confs}
@@ -122,26 +122,26 @@ spec:
       selfHeal: true
 EOF
 
-# cat <<EOF | kubectl apply -f -
-# apiVersion: argoproj.io/v1alpha1
-# kind: Application
-# metadata:
-#   name: aomman-bonus-website
-#   namespace: argocd
-# spec:
-#   project: default
-#   source:
-#     repoURL: 'http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/root/aomman-bonus-website.git'
-#     targetRevision: HEAD
-#     path: confs
-#   destination:
-#     server: 'https://kubernetes.default.svc'
-#     namespace: dev
-#   syncPolicy:
-#     automated:
-#       prune: true
-#       selfHeal: true
-# EOF
+cat <<EOF | kubectl apply -f -
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aomman-bonus-website
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/root/aomman-bonus-website.git'
+    targetRevision: HEAD
+    path: confs
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+EOF
 
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
