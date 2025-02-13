@@ -19,7 +19,7 @@ info() {
 gitlab_password=$(kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -ojsonpath='{.data.password}' | base64 --decode)
 echo "GitLab password: $gitlab_password"
 
-# Create Personal Access Token
+# # Create Personal Access Token
 echo "Creating GitLab token..."
 TOKEN_RESPONSE=$(curl -s --request POST "http://gitlab.localhost:8080/api/v4/personal_access_tokens" \
   --header "Content-Type: application/json" \
@@ -32,147 +32,56 @@ TOKEN_RESPONSE=$(curl -s --request POST "http://gitlab.localhost:8080/api/v4/per
 export GITLAB_TOKEN=$(echo $TOKEN_RESPONSE | jq -r '.token')
 
 # Create project structure
-mkdir -p /tmp/p3/{src/public,confs}
-cd /tmp/p3
-
-# Create demo application files
-sudo cat > src/public/index.html <<EOF
-<!DOCTYPE html>
-<html>
-<head>
-    <title>IoT P3 Demo</title>
-    <style>
-        body { 
-            font-family: Arial; 
-            text-align: center; 
-            margin-top: 50px;
-            background-color: #f0f0f0;
-        }
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .version { 
-            color: #666;
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Welcome to IoT P3 Demo</h1>
-        <p>This is version 1.0</p>
-        <div class="version">Deployed by ArgoCD</div>
-    </div>
-</body>
-</html>
-EOF
-
-sudo cat > src/index.js <<EOF
-const express = require('express');
-const app = express();
-const port = 3000;
-
-app.use(express.static('public'));
-app.listen(port, () => {
-    console.log(\`Server running at http://localhost:\${port}\`);
-});
-EOF
-
-sudo cat > src/package.json <<EOF
-{
-  "name": "aomman-bonus-website",
-  "version": "1.0.0",
-  "dependencies": {
-    "express": "^4.17.1"
-  }
-}
-EOF
-
-# Create Dockerfile
-sudo cat > Dockerfile <<EOF
-FROM node:16-alpine
-WORKDIR /app
-COPY src/package*.json ./
-RUN npm install
-COPY src .
-EXPOSE 3000
-CMD ["node", "index.js"]
-EOF
+# mkdir -p /tmp/p3/{src/public,confs}
+# cd /tmp/p3
 
 # Create Kubernetes manifests
 sudo cat > confs/deployment.yaml <<EOF
-apiVersion: apps/v1
-kind: Deployment
+# Deployment
+apiVersion: apps/v1             # Kubernetes API version for Deployment resource
+kind: Deployment                # Type of Kubernetes resource
 metadata:
-  name: demo-website
+  name: wil-playground          # Name and namespace of the Deployment
   namespace: dev
-spec:
-  replicas: 2
+spec:                           # Specification of the Deployment
   selector:
     matchLabels:
-      app: demo-website
+      app: wil-playground       # Label to match Pods managed by this Deployment
   template:
     metadata:
       labels:
-        app: demo-website
+        app: wil-playground     # Labels applied to Pods created from this template
     spec:
       containers:
-      - name: demo-website
-        image: registry.gitlab.local:5050/root/aomman-bonus-website:latest
+      - name: wil               # Name of the container
+        image: wil42/playground:v1  # Docker image to use for the container
         ports:
-        - containerPort: 3000
-EOF
+        - containerPort: 8888   # Port exposed by the container
 
-sudo cat > confs/service.yaml <<EOF
-apiVersion: v1
-kind: Service
+---
+
+# Service
+apiVersion: v1                  # Kubernetes API version for Service resource
+kind: Service                   # Tyfe of Kubernetes resource
 metadata:
-  name: demo-website
+  name: svc-wil-playground      # Name of the Service
   namespace: dev
 spec:
-  type: LoadBalancer
-  ports:
-  - port: 80
-    targetPort: 3000
   selector:
-    app: demo-website
+    app: wil-playground         # Labels used to identify Pods that the Service will route traffic to
+  ports:
+    - protocol: TCP             # Protocol used for the port
+      port: 8080                # Port number on the Service that clients can connect to
+      targetPort: 8888          # Port number on the Pods to which the Service will forward traffic
+
+
+# The Service acts as an abstraction layer that provides a stable endpoint for accessing the Pods 
+#  that are part of the Deployment. Instead of directly accessing individual Pods (which can be dynamic 
+#  and change over time), clients interact with the Service, which internally routes requests to the
+#  appropriate Pods. The port configuration ensures that traffic is correctly routed from external 
+#  clients to the Pods where the application is running.
 EOF
 
-# Create GitLab CI
-sudo cat > .gitlab-ci.yml <<EOF
-image: docker:20.10.16
-
-services:
-  - docker:20.10.16-dind
-
-variables:
-  DOCKER_TLS_CERTDIR: ""
-
-stages:
-  - build
-  - deploy
-
-build:
-  stage: build
-  script:
-    - docker login -u root -p ${gitlab_password} registry.gitlab.local:5050
-    - docker build -t registry.gitlab.local:5050/root/aomman-bonus-website:latest .
-    - docker push registry.gitlab.local:5050/root/aomman-bonus-website:latest
-
-deploy:
-  stage: deploy
-  script:
-    - apk add --no-cache curl
-    - curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.21.0/bin/linux/amd64/kubectl
-    - chmod +x ./kubectl
-    - mv ./kubectl /usr/local/bin/kubectl
-    - kubectl apply -f confs/
-EOF
 
 # Create GitLab project
 echo "Creating GitLab project..."
@@ -201,7 +110,28 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'http://gitlab.localhost:8080/root/aomman-bonus-website.git'
+    repoURL: 'http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/root/aomman-bonus-website.git'
+    targetRevision: HEAD
+    path: confs
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+EOF
+
+cat <<EOF | kubectl apply -f -
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aomman-bonus-website
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/root/aomman-bonus-website.git'
     targetRevision: HEAD
     path: confs
   destination:
@@ -217,6 +147,8 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 
 kubectl wait --for=condition=available --timeout=600s deployment/argocd-server -n argocd
 kubectl apply -f confs/argocd.yaml
+
+kubectl port-forward svc/svc-wil-playground -n dev 9092:8080
 check_status "ArgoCD configured"
 
 
