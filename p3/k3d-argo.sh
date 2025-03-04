@@ -35,6 +35,6 @@ sudo kubectl apply -f ./argo-application.yaml -n argocd
 sudo kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
 
 sudo kubectl wait --for=condition=Ready pods --all -n argocd
-sudo kubectl port-forward svc/argocd-server -n argocd 8080:80 2>&1 >/dev/null &
-sudo kubectl port-forward svc/wil-playground-service -n dev 8888:8888 2>&1 >/dev/null &
+# sudo kubectl port-forward svc/argocd-server -n argocd 8080:80 2>&1 >/dev/null &
+# sudo kubectl port-forward svc/wil-playground-service -n dev 8888:8888 2>&1 >/dev/null &
 
